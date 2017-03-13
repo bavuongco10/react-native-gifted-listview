@@ -48,6 +48,7 @@ var GiftedListView = React.createClass({
       sectionHeaderView: null,
       scrollEnabled: true,
       withSections: false,
+      autoPaginate: false,
       onFetch(page, callback, options) { callback([]); },
 
       paginationFetchingView: null,
@@ -76,6 +77,7 @@ var GiftedListView = React.createClass({
     sectionHeaderView: React.PropTypes.func,
     scrollEnabled: React.PropTypes.bool,
     withSections: React.PropTypes.bool,
+    autoPaginate: React.PropTypes.bool,
     onFetch: React.PropTypes.func,
 
     paginationFetchingView: React.PropTypes.func,
@@ -228,6 +230,16 @@ var GiftedListView = React.createClass({
     }
   },
 
+  onEndReached() {
+    if(!this.state.firstLoadComplete) return;
+
+    if (this.props.autoPaginate) {
+      this._onPaginate();
+    }
+    if (this.props.onEndReached) {
+      this.props.onEndReached();
+    }
+  },
   _onPaginate() {
     if(this.state.paginationStatus==='allLoaded'){
       return null
@@ -280,11 +292,13 @@ var GiftedListView = React.createClass({
   },
 
   _renderPaginationView() {
-    if ((this.state.paginationStatus === 'fetching' && this.props.pagination === true) || (this.state.paginationStatus === 'firstLoad' && this.props.firstLoader === true)) {
+    let paginationEnabled = this.props.pagination === true || this.props.autoPaginate === true;
+
+    if ((this.state.paginationStatus === 'fetching' && paginationEnabled) || (this.state.paginationStatus === 'firstLoad' && this.props.firstLoader === true)) {
       return this.paginationFetchingView();
     } else if (this.state.paginationStatus === 'waiting' && this.props.pagination === true && (this.props.withSections === true || this._getRows().length > 0)) {
       return this.paginationWaitingView(this._onPaginate);
-    } else if (this.state.paginationStatus === 'allLoaded' && this.props.pagination === true) {
+    } else if (this.state.paginationStatus === 'allLoaded' && paginationEnabled) {
       return this.paginationAllLoadedView();
     } else if (this._getRows().length === 0) {
       return this.emptyView(this._onRefresh);
@@ -320,7 +334,7 @@ var GiftedListView = React.createClass({
         renderHeader={this.headerView}
         renderFooter={this._renderPaginationView}
         renderSeparator={this.renderSeparator}
-
+        onEndReached={this.onEndReached}
         automaticallyAdjustContentInsets={false}
         scrollEnabled={this.props.scrollEnabled}
         canCancelContentTouches={true}
