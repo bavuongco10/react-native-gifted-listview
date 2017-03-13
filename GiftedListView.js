@@ -289,6 +289,13 @@ var GiftedListView = React.createClass({
         paginationStatus: (options.allLoaded === true ? 'allLoaded' : 'waiting'),
       });
     }
+
+
+     //this must be fired separately or iOS will call onEndReached 2-3 additional times as
+    //the ListView is filled. So instead we rely on React's rendering to cue this task
+    //until after the previous state is filled and the ListView rendered. After that,
+    //onEndReached callbacks will fire. See onEndReached() above.
+    if (!this.state.firstLoadComplete) this.setState({firstLoadComplete: true});
   },
 
   _renderPaginationView() {
