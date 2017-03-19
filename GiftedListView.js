@@ -227,6 +227,13 @@ var GiftedListView = React.createClass({
     }
   },
 
+  _refreshWithoutEffect(options = {}) {
+    if (this.isMounted()) {
+      this._setPage(1);
+      this.props.onFetch(this._getPage(), this._postRefresh, options);
+    }
+  },
+
   _postRefresh(rows = [], options = {}) {
     if (this.isMounted()) {
       this._updateRows(rows, options);
