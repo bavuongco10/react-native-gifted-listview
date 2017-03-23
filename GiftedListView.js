@@ -34,6 +34,7 @@ var GiftedListView = React.createClass({
 
   getDefaultProps() {
     return {
+      dangerouslysetDataSource: null,
       customStyles: {},
       initialListSize: 10,
       firstLoader: true,
@@ -207,6 +208,15 @@ var GiftedListView = React.createClass({
     InteractionManager.runAfterInteractions(() => {
       this.props.onFetch(this._getPage(), this._postRefresh, {firstLoad: true});
     });
+  },
+
+  componentWillReceiveProps(nextProps) {
+    const {
+      dangerouslysetDataSource
+    }  = nextProps;
+    if(dangerouslysetDataSource) {
+      this._updateRows(dangerouslysetDataSource);
+    }
   },
 
   setNativeProps(props) {
