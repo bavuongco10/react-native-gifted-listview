@@ -1,10 +1,9 @@
-'use strict'
 
-var React = require('react');
 
-var {
+const React = require('react');
+
+const {
   ListView,
-  Platform,
   TouchableHighlight,
   View,
   Text,
@@ -16,25 +15,26 @@ var {
 
 // small helper function which merged two objects into one
 function MergeRecursive(obj1, obj2) {
-  for (var p in obj2) {
+  for (const p in obj2) {
     try {
-      if ( obj2[p].constructor==Object ) {
+      if (obj2[p].constructor == Object) {
         obj1[p] = MergeRecursive(obj1[p], obj2[p]);
       } else {
         obj1[p] = obj2[p];
       }
-    } catch(e) {
+    } catch (e) {
       obj1[p] = obj2[p];
     }
   }
   return obj1;
 }
 
-var GiftedListView = React.createClass({
+const GiftedListView = React.createClass({
 
   getDefaultProps() {
     return {
-      dangerouslysetDataSource: null,
+      autoUpdate: false,
+      autoUpdateDataSource: null,
       customStyles: {},
       initialListSize: 10,
       firstLoader: true,
@@ -58,12 +58,14 @@ var GiftedListView = React.createClass({
       paginationWaitingView: null,
       emptyView: null,
       renderSeparator: null,
-      rowHasChanged:null,
-      distinctRows:null,
+      rowHasChanged: null,
+      distinctRows: null,
     };
   },
 
   propTypes: {
+    autoUpdate: React.PropTypes.bool,
+    autoUpdateDataSource: React.PropTypes.array,
     customStyles: React.PropTypes.object,
     initialListSize: React.PropTypes.number,
     firstLoader: React.PropTypes.bool,
@@ -88,15 +90,14 @@ var GiftedListView = React.createClass({
     emptyView: React.PropTypes.func,
     renderSeparator: React.PropTypes.func,
 
-    rowHasChanged:React.PropTypes.func,
-    distinctRows:React.PropTypes.func,
+    rowHasChanged: React.PropTypes.func,
+    distinctRows: React.PropTypes.func,
   },
 
   _setPage(page) { this._page = page; },
   _getPage() { return this._page; },
   _setRows(rows) { this._rows = rows; },
   _getRows() { return this._rows; },
-
 
   paginationFetchingView() {
     if (this.props.paginationFetchingView) {
@@ -129,7 +130,7 @@ var GiftedListView = React.createClass({
 
     return (
       <TouchableHighlight
-        underlayColor='#c8c7cc'
+        underlayColor="#c8c7cc"
         onPress={paginateCallback}
         style={[this.defaultStyles.paginationView, this.props.customStyles.paginationView]}
       >
@@ -140,7 +141,7 @@ var GiftedListView = React.createClass({
     );
   },
   headerView() {
-    if (this.state.paginationStatus === 'firstLoad' || !this.props.headerView){
+    if (this.state.paginationStatus === 'firstLoad' || !this.props.headerView) {
       return null;
     }
     return this.props.headerView();
@@ -157,7 +158,7 @@ var GiftedListView = React.createClass({
         </Text>
 
         <TouchableHighlight
-          underlayColor='#c8c7cc'
+          underlayColor="#c8c7cc"
           onPress={refreshCallback}
         >
           <Text>
@@ -181,10 +182,10 @@ var GiftedListView = React.createClass({
     this._setPage(1);
     this._setRows([]);
 
-    var ds = null;
+    let ds = null;
     if (this.props.withSections === true) {
       ds = new ListView.DataSource({
-        rowHasChanged: this.props.rowHasChanged?this.props.rowHasChanged:(row1, row2) => row1 !== row2,
+        rowHasChanged: this.props.rowHasChanged ? this.props.rowHasChanged : (row1, row2) => row1 !== row2,
         sectionHeaderHasChanged: (section1, section2) => section1 !== section2,
       });
       return {
@@ -192,30 +193,31 @@ var GiftedListView = React.createClass({
         isRefreshing: false,
         paginationStatus: 'firstLoad',
       };
-    } else {
-      ds = new ListView.DataSource({
-        rowHasChanged: this.props.rowHasChanged?this.props.rowHasChanged:(row1, row2) => row1 !== row2,
-      });
-      return {
-        dataSource: ds.cloneWithRows(this._getRows()),
-        isRefreshing: false,
-        paginationStatus: 'firstLoad',
-      };
     }
+    ds = new ListView.DataSource({
+      rowHasChanged: this.props.rowHasChanged ? this.props.rowHasChanged : (row1, row2) => row1 !== row2,
+    });
+    return {
+      dataSource: ds.cloneWithRows(this._getRows()),
+      isRefreshing: false,
+      paginationStatus: 'firstLoad',
+    };
   },
 
   componentDidMount() {
     InteractionManager.runAfterInteractions(() => {
-      this.props.onFetch(this._getPage(), this._postRefresh, {firstLoad: true});
+      this.props.onFetch(this._getPage(), this._postRefresh, { firstLoad: true });
     });
   },
 
+  // TODO: check for diff item, maybe use: rowHasChange or lodash _.unionBy
   componentWillReceiveProps(nextProps) {
     const {
-      dangerouslysetDataSource
-    }  = nextProps;
-    if(dangerouslysetDataSource) {
-      this._updateRows(dangerouslysetDataSource);
+      autoUpdateDataSource,
+      autoUpdate,
+    } = nextProps;
+    if (autoUpdate && autoUpdateDataSource && autoUpdateDataSource.length > 0) {
+      this._updateRows(autoUpdateDataSource);
     }
   },
 
@@ -224,7 +226,7 @@ var GiftedListView = React.createClass({
   },
 
   _refresh() {
-    this._onRefresh({external: true});
+    this._onRefresh({ external: true });
   },
 
   _onRefresh(options = {}) {
@@ -251,7 +253,7 @@ var GiftedListView = React.createClass({
   },
 
   onEndReached() {
-    if(!this.state.firstLoadComplete) return;
+    if (!this.state.firstLoadComplete) return;
 
     if (this.props.autoPaginate) {
       this._onPaginate();
@@ -261,26 +263,25 @@ var GiftedListView = React.createClass({
     }
   },
   _onPaginate() {
-    if(this.state.paginationStatus==='allLoaded'){
-      return null
-    }else {
-      this.setState({
-        paginationStatus: 'fetching',
-      });
-      this.props.onFetch(this._getPage() + 1, this._postPaginate, {});
+    if (this.state.paginationStatus === 'allLoaded') {
+      return null;
     }
+    this.setState({
+      paginationStatus: 'fetching',
+    });
+    this.props.onFetch(this._getPage() + 1, this._postPaginate, {});
   },
 
   _postPaginate(rows = [], options = {}) {
     this._setPage(this._getPage() + 1);
-    var mergedRows = null;
+    let mergedRows = null;
     if (this.props.withSections === true) {
       mergedRows = MergeRecursive(this._getRows(), rows);
     } else {
       mergedRows = this._getRows().concat(rows);
     }
 
-    if(this.props.distinctRows){
+    if (this.props.distinctRows) {
       mergedRows = this.props.distinctRows(mergedRows);
     }
 
@@ -311,15 +312,15 @@ var GiftedListView = React.createClass({
     }
 
 
-     //this must be fired separately or iOS will call onEndReached 2-3 additional times as
-    //the ListView is filled. So instead we rely on React's rendering to cue this task
-    //until after the previous state is filled and the ListView rendered. After that,
-    //onEndReached callbacks will fire. See onEndReached() above.
-    if (!this.state.firstLoadComplete) this.setState({firstLoadComplete: true});
+     // this must be fired separately or iOS will call onEndReached 2-3 additional times as
+    // the ListView is filled. So instead we rely on React's rendering to cue this task
+    // until after the previous state is filled and the ListView rendered. After that,
+    // onEndReached callbacks will fire. See onEndReached() above.
+    if (!this.state.firstLoadComplete) this.setState({ firstLoadComplete: true });
   },
 
   _renderPaginationView() {
-    let paginationEnabled = this.props.pagination === true || this.props.autoPaginate === true;
+    const paginationEnabled = this.props.pagination === true || this.props.autoPaginate === true;
 
     if ((this.state.paginationStatus === 'fetching' && paginationEnabled) || (this.state.paginationStatus === 'firstLoad' && this.props.firstLoader === true)) {
       return this.paginationFetchingView();
@@ -329,9 +330,8 @@ var GiftedListView = React.createClass({
       return this.paginationAllLoadedView();
     } else if (this._getRows().length === 0) {
       return this.emptyView(this._onRefresh);
-    } else {
-      return null;
     }
+    return null;
   },
 
   renderRefreshControl() {
@@ -351,6 +351,7 @@ var GiftedListView = React.createClass({
     );
   },
 
+
   render() {
     return (
       <ListView
@@ -364,7 +365,7 @@ var GiftedListView = React.createClass({
         onEndReached={this.onEndReached}
         automaticallyAdjustContentInsets={false}
         scrollEnabled={this.props.scrollEnabled}
-        canCancelContentTouches={true}
+        canCancelContentTouches
         refreshControl={this.props.refreshable === true ? this.renderRefreshControl() : null}
 
         {...this.props}
@@ -377,7 +378,7 @@ var GiftedListView = React.createClass({
   defaultStyles: {
     separator: {
       height: 1,
-      backgroundColor: '#CCC'
+      backgroundColor: '#CCC',
     },
     actionsLabel: {
       fontSize: 20,
