@@ -1,5 +1,3 @@
-
-
 const React = require('react');
 
 const {
@@ -65,7 +63,10 @@ const GiftedListView = React.createClass({
 
   propTypes: {
     autoUpdate: React.PropTypes.bool,
-    autoUpdateDataSource: React.PropTypes.array,
+    autoUpdateDataSource: React.PropTypes.oneOfType([
+      React.PropTypes.array,
+      React.PropTypes.object
+    ]),
     customStyles: React.PropTypes.object,
     initialListSize: React.PropTypes.number,
     firstLoader: React.PropTypes.bool,
@@ -216,7 +217,7 @@ const GiftedListView = React.createClass({
       autoUpdateDataSource,
       autoUpdate,
     } = nextProps;
-    if (autoUpdate && autoUpdateDataSource && autoUpdateDataSource.length > 0) {
+    if (autoUpdate && autoUpdateDataSource) {
       this._updateRows(autoUpdateDataSource);
     }
   },
