@@ -218,7 +218,7 @@ const GiftedListView = React.createClass({
       autoUpdate,
     } = nextProps;
     if (autoUpdate && autoUpdateDataSource) {
-      this._updateRows(autoUpdateDataSource);
+      this._updateRows(autoUpdateDataSource, { allLoaded: true });
     }
   },
 
