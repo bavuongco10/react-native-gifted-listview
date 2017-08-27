@@ -117,8 +117,7 @@ const GiftedListView = React.createClass({
     }
 
     return (
-      <View style={[this.defaultStyles.paginationView, this.props.customStyles.paginationView]}>
-      </View>
+      <View />
     );
   },
   paginationWaitingView(paginateCallback) {
