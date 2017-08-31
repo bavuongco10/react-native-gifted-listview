@@ -202,9 +202,14 @@ const GiftedListView = React.createClass({
   },
 
   componentDidMount() {
+    this._isMounted = true;
     InteractionManager.runAfterInteractions(() => {
       this.props.onFetch(this._getPage(), this._postRefresh, { firstLoad: true });
     });
+  },
+
+	componentWillUnmount() {
+    this._isMounted = false;
   },
 
   // TODO: check for diff item, maybe use: rowHasChange or lodash _.unionBy
@@ -227,7 +232,7 @@ const GiftedListView = React.createClass({
   },
 
   _onRefresh(options = {}) {
-    if (this.isMounted()) {
+    if (this._isMounted) {
       this.setState({
         isRefreshing: true,
       });
@@ -237,14 +242,14 @@ const GiftedListView = React.createClass({
   },
 
   _refreshWithoutEffect(options = {}) {
-    if (this.isMounted()) {
+    if (this._isMounted) {
       this._setPage(1);
       this.props.onFetch(this._getPage(), this._postRefresh, options);
     }
   },
 
   _postRefresh(rows = [], options = {}) {
-    if (this.isMounted()) {
+    if (this._isMounted) {
       this._updateRows(rows, options);
     }
   },
