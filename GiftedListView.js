@@ -1,5 +1,5 @@
 const React = require('react');
-const PropTypes = require('PropTypes');
+const PropTypes = require('prop-types');
 const {
   ListView,
   TouchableHighlight,
