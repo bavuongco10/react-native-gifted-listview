@@ -1,4 +1,4 @@
-const React = require('react');
+const CreateReactClass = require('create-react-class');
 const PropTypes = require('prop-types');
 const {
   ListView,
@@ -27,7 +27,7 @@ function MergeRecursive(obj1, obj2) {
   return obj1;
 }
 
-const GiftedListView = React.createClass({
+const GiftedListView = CreateReactClass({
 
   getDefaultProps() {
     return {
